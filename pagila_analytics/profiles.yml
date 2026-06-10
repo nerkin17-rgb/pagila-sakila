@@ -1,0 +1,13 @@
+pagila_analytics:
+  outputs:
+    dev:
+      type: snowflake
+      account: "{{ env_var('SF_ACCOUNT') }}"
+      user: "{{ env_var('SF_USER') }}"
+      database: "{{ env_var('SF_DATABASE') }}"
+      password: "{{ env_var('SF_PASSWORD') }}"
+      role: AIRFLOW_DEV_ROLE
+      schema: PUBLIC
+      threads: 4
+      client_session_keep_alive: False
+  target: dev

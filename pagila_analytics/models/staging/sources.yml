@@ -1,0 +1,42 @@
+version: 2
+
+sources:
+  - name: pagila_source
+    database: RAW_DATA_DB
+    schema: PAGILA
+    loaded_at_field: _airbyte_emitted_at # Airbyte автоматически добавляет это поле при репликации
+    freshness:
+      warn_after: {count: 24, period: hour}
+      error_after: {count: 48, period: hour}
+    tables:
+      - name: FILM
+      - name: ACTOR
+      - name: FILM_ACTOR
+      - name: FILM_CATEGORY
+      - name: CATEGORY
+      - name: RENTAL
+      - name: CUSTOMER
+      - name: INVENTORY
+      - name: PAYMENT
+      - name: ADDRESS
+      - name: CITY
+
+  - name: sakila_source
+    database: RAW_DATA_DB
+    schema: SAKILA
+    loaded_at_field: _airbyte_emitted_at
+    freshness:
+      warn_after: {count: 24, period: hour}
+      error_after: {count: 48, period: hour}
+    tables:
+      - name: FILM
+      - name: ACTOR
+      - name: FILM_ACTOR
+      - name: FILM_CATEGORY
+      - name: CATEGORY
+      - name: RENTAL
+      - name: CUSTOMER
+      - name: INVENTORY
+      - name: PAYMENT
+      - name: ADDRESS
+      - name: CITY
