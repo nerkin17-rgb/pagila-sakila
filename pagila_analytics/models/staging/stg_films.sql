@@ -1,18 +1,16 @@
 with source_pagila as (
     select * from {{ source('pagila_source', 'FILM') }}
 ),
-
 source_sakila as (
     select * from {{ source('sakila_source', 'FILM') }}
 ),
-
 combined as (
     select *, 'pagila' as db_source from source_pagila
     union all
     select *, 'sakila' as db_source from source_sakila
 )
-
 select
+    {{ dbt_utils.generate_surrogate_key(['FILM_ID', 'db_source']) }} as film_surrogate_key,
     cast(FILM_ID as integer) as film_id,
     cast(TITLE as varchar) as title,
     cast(DESCRIPTION as varchar) as description,

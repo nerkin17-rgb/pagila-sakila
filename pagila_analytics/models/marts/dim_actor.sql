@@ -1,4 +1,5 @@
 select
+    actor_surrogate_key as actor_key,
     actor_id,
     first_name,
     last_name,

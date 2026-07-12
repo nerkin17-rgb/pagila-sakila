@@ -1,16 +1,14 @@
 with customer as (
     select * from {{ ref('stg_customer') }}
 ),
-
 address as (
     select * from {{ ref('stg_address') }}
 ),
-
 city as (
     select * from {{ ref('stg_city') }}
 )
-
 select
+    c.customer_surrogate_key,
     c.customer_id,
     c.store_id,
     c.first_name,

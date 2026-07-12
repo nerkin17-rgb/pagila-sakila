@@ -1,0 +1,101 @@
+x-airflow-common: &airflow-common
+  build:
+    context: ./airflow
+    dockerfile: Dockerfile
+  environment:
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${AIRFLOW_DB_USER}:${AIRFLOW_DB_PASS}@airflow_metadata:5432/${AIRFLOW_DB_NAME}
+    AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW_FERNET_KEY}
+    AIRFLOW__CORE__LOAD_EXAMPLES: 'False'
+    AIRFLOW__CORE__LOGGING_LEVEL: 'INFO'
+    SF_ACCOUNT: ${SF_ACCOUNT}
+    SF_USER: ${SF_USER}
+    SF_ROLE: ${SF_ROLE}
+    SF_WAREHOUSE: ${SF_WAREHOUSE}
+    SF_DATABASE: ${SF_DATABASE}
+    SF_SCHEMA: ${SF_SCHEMA}
+    SF_PRIVATE_KEY_PATH: ${SF_PRIVATE_KEY_PATH}
+    SF_PRIVATE_KEY_PASSPHRASE: ${SF_PRIVATE_KEY_PASSPHRASE}
+    AIRBYTE_SERVER_URL: ${AIRBYTE_SERVER_URL}
+    AIRBYTE_CLIENT_ID: ${AIRBYTE_CLIENT_ID}
+    AIRBYTE_CLIENT_SECRET: ${AIRBYTE_CLIENT_SECRET}
+    AIRBYTE_PAGILA_CONNECTION_ID: ${AIRBYTE_PAGILA_CONNECTION_ID}
+    AIRBYTE_SAKILA_CONNECTION_ID: ${AIRBYTE_SAKILA_CONNECTION_ID}
+  volumes:
+    - ./airflow/dags:/opt/airflow/dags
+    - ./airflow/secrets:/opt/airflow/secrets:ro
+    - airflow_logs:/opt/airflow/logs
+    - ./pagila_analytics:/opt/pagila_analytics
+  user: "${AIRFLOW_UID:-50000}:0"
+  depends_on:
+    airflow_metadata:
+      condition: service_healthy
+
+services:
+  postgres_sources:
+    image: postgres:15-alpine
+    container_name: postgres_sources
+    environment:
+      POSTGRES_USER: ${SRC_DB_USER}
+      POSTGRES_PASSWORD: ${SRC_DB_PASS}
+      POSTGRES_DB: ${SRC_DB_NAME}
+    ports:
+      - "${SRC_DB_HOST_PORT:-5432}:5432"
+    volumes:
+      - ./sources-db/init-scripts:/docker-entrypoint-initdb.d
+      - postgres_sources_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${SRC_DB_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  airflow_metadata:
+    image: postgres:15-alpine
+    container_name: airflow_metadata
+    environment:
+      POSTGRES_USER: ${AIRFLOW_DB_USER}
+      POSTGRES_PASSWORD: ${AIRFLOW_DB_PASS}
+      POSTGRES_DB: ${AIRFLOW_DB_NAME}
+    volumes:
+      - airflow_metadata_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${AIRFLOW_DB_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  airflow_webserver:
+    <<: *airflow-common
+    container_name: airflow_webserver
+    command: >
+      bash -c "airflow db migrate &&
+               airflow users create --username ${AIRFLOW_ADMIN_USER} --password ${AIRFLOW_ADMIN_PASS}
+                 --firstname Admin --lastname Admin --role Admin --email admin@example.com || true &&
+               airflow connections add snowflake_default
+                 --conn-type snowflake
+                 --conn-login ${SF_USER}
+                 --conn-extra '{\"account\":\"'\"${SF_ACCOUNT}\"'\",\"role\":\"'\"${SF_ROLE}\"'\",\"warehouse\":\"'\"${SF_WAREHOUSE}\"'\",\"database\":\"'\"${SF_DATABASE}\"'\",\"schema\":\"'\"${SF_SCHEMA}\"'\",\"private_key_file\":\"'\"${SF_PRIVATE_KEY_PATH}\"'\",\"private_key_pwd\":\"'\"${SF_PRIVATE_KEY_PASSPHRASE}\"'\"}' || true &&
+               airflow webserver"
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    restart: always
+
+  airflow_scheduler:
+    <<: *airflow-common
+    container_name: airflow_scheduler
+    command: bash -c "airflow scheduler"
+    restart: always
+    depends_on:
+      airflow_webserver:
+        condition: service_healthy
+
+volumes:
+  postgres_sources_data:
+  airflow_metadata_data:
+  airflow_logs:

@@ -1,21 +1,14 @@
 with film as (
     select * from {{ ref('stg_films') }}
 ),
-
 category as (
     select * from {{ ref('stg_category') }}
 ),
-
--- Читаем связь фильм-категория напрямую из источников
 film_category as (
-    select cast(FILM_ID as integer) as film_id, cast(CATEGORY_ID as integer) as category_id, 'pagila' as db_source 
-    from {{ source('pagila_source', 'FILM_CATEGORY') }}
-    union all
-    select cast(FILM_ID as integer) as film_id, cast(CATEGORY_ID as integer) as category_id, 'sakila' as db_source 
-    from {{ source('sakila_source', 'FILM_CATEGORY') }}
+    select * from {{ ref('stg_film_category') }}
 )
-
 select
+    f.film_surrogate_key as film_key,
     f.film_id,
     f.title,
     f.description,

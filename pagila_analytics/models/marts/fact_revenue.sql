@@ -1,10 +1,10 @@
 select
-    payment_id,
-    customer_id,
+    payment_surrogate_key as payment_key,
+    rental_surrogate_key as rental_key,
+    customer_surrogate_key as customer_key,
     staff_id,
-    rental_id,
     payment_amount as amount,
     payment_date,
     db_source
 from {{ ref('int_rental_facts') }}
-where payment_id is not null -- Берем только те записи, где реально был платеж
+where payment_surrogate_key is not null

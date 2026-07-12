@@ -4,6 +4,7 @@ with combined as (
     select *, 'sakila' as db_source from {{ source('sakila_source', 'CITY') }}
 )
 select
+    {{ dbt_utils.generate_surrogate_key(['CITY_ID', 'db_source']) }} as city_surrogate_key,
     cast(CITY_ID as integer) as city_id,
     cast(CITY as varchar) as city,
     cast(COUNTRY_ID as integer) as country_id,

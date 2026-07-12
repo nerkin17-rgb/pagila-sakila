@@ -4,6 +4,7 @@ with combined as (
     select *, 'sakila' as db_source from {{ source('sakila_source', 'PAYMENT') }}
 )
 select
+    {{ dbt_utils.generate_surrogate_key(['PAYMENT_ID', 'db_source']) }} as payment_surrogate_key,
     cast(PAYMENT_ID as integer) as payment_id,
     cast(CUSTOMER_ID as integer) as customer_id,
     cast(STAFF_ID as integer) as staff_id,

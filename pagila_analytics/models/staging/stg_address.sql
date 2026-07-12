@@ -4,6 +4,7 @@ with combined as (
     select *, 'sakila' as db_source from {{ source('sakila_source', 'ADDRESS') }}
 )
 select
+    {{ dbt_utils.generate_surrogate_key(['ADDRESS_ID', 'db_source']) }} as address_surrogate_key,
     cast(ADDRESS_ID as integer) as address_id,
     cast(ADDRESS as varchar) as address,
     cast(DISTRICT as varchar) as district,

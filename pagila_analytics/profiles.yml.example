@@ -1,0 +1,17 @@
+# Copy to profiles.yml (gitignored) — or leave as-is, since the airflow
+# container already sets every SF_* env var referenced below (see
+# docker-compose.yml). No secrets are ever hardcoded in this repo.
+pagila_analytics:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: "{{ env_var('SF_ACCOUNT') }}"
+      user: "{{ env_var('SF_USER') }}"
+      role: "{{ env_var('SF_ROLE') }}"                # TRANSFORM_ROLE — never ADMIN
+      warehouse: "{{ env_var('SF_WAREHOUSE') }}"
+      database: "{{ env_var('SF_DATABASE') }}"
+      schema: "{{ env_var('SF_SCHEMA') }}"
+      private_key_path: "{{ env_var('SF_PRIVATE_KEY_PATH') }}"
+      private_key_passphrase: "{{ env_var('SF_PRIVATE_KEY_PASSPHRASE', '') }}"
+      threads: 4

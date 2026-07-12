@@ -1,7 +1,6 @@
 FROM apache/airflow:2.7.1-python3.10
 
 USER root
-
 RUN apt-get update \
     && apt-get install -y --no-install-recommends git \
     && apt-get autoremove -yqq --purge \
@@ -9,5 +8,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 USER airflow
-
-RUN pip install --no-cache-dir dbt-snowflake==1.11.5
+RUN pip install --no-cache-dir \
+    dbt-snowflake==1.11.5 \
+    apache-airflow-providers-snowflake==5.7.0 \
+    requests==2.32.3
