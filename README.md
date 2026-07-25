@@ -26,7 +26,7 @@ An end-to-end, enterprise-style ELT data platform automating database setup, cro
 │     ├─ Staging: Type casting, renaming, cleaning            │
 │     ├─ Intermediate: Enriched entities & business logic     │
 │     ├─ Marts: Dimensional models (`dim_`, `fact_`)          │
-│     └─ Analytics: Final reporting & metric views           │
+│     └─ Analytics: Final reporting & metric views            │
 └─────────────────────────────────────────────────────────────┘
 ```
 
